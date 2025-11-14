@@ -14,8 +14,16 @@ class DisconData:
 
 class DtekApi:
     @classmethod
-    def get_shutdowns(cls, street: str, house: str) -> DisconData:
+    def get_shutdowns(
+        cls, street: str, house: str, city: str | None = None
+    ) -> DisconData:
         logger = logging.getLogger("DTEK")
+
+        base_url = (
+            "https://www.dtek-krem.com.ua/ua"
+            if city
+            else "https://www.dtek-kem.com.ua/ua"
+        )
 
         with sync_playwright() as p:
             logger.info("Launching browser...")
@@ -23,7 +31,8 @@ class DtekApi:
 
             logger.info("Fetching index page...")
             page = browser.new_page()
-            response = page.goto("https://www.dtek-kem.com.ua/ua/shutdowns")
+
+            response = page.goto(f"{base_url}/shutdowns")
             page.wait_for_load_state("networkidle")
             assert response is not None
             assert response.status == 200
@@ -37,13 +46,24 @@ class DtekApi:
             )[0]
 
             logger.info(f"Requesting houses for street '{street}' ...")
-            api_street_response = page.request.post(
-                "https://www.dtek-kem.com.ua/ua/ajax",
-                multipart={
+
+            if city:
+                multipart = {
+                    "method": "getHomeNum",
+                    "data[0][name]": "city",
+                    "data[0][value]": city,
+                    "data[1][name]": "street",
+                    "data[1][value]": street,
+                }
+            else:
+                multipart = {
                     "method": "getHomeNum",
                     "data[0][name]": "street",
                     "data[0][value]": street,
-                },
+                }
+            api_street_response = page.request.post(
+                f"{base_url}/ajax",
+                multipart=dict(multipart),
                 headers={
                     "X-CSRF-Token": csrf_token,
                 },

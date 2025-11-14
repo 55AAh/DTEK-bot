@@ -12,10 +12,16 @@ def main():
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
+    city = os.environ.get("CITY")
     street = os.environ["STREET"]
     house = os.environ["HOUSE"]
-    data = DtekApi.get_shutdowns(street, house)
+    data = DtekApi.get_shutdowns(city=city, street=street, house=house)
 
+    print()
+    if city:
+        print(f"City: {city}")
+    print(f"Street: {street}")
+    print(f"House: {house}")
     print()
     print(f"Group: {data.group}")
 
