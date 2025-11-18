@@ -42,7 +42,7 @@ def main():
         print(
             tabulate(
                 [[state_map[status] for status in fact.values()]],
-                headers=list(fact.keys()),
+                headers=[int(h) - 1 for h in fact.keys()],
                 tablefmt="plain",
             )
         )
